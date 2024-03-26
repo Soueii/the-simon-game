@@ -3,48 +3,47 @@ var randomChosenColour;
 var userClickedPattern = [];
 var gamePattern = [];
 var level = 0;
+var started = false;
+
+$(document).on("keyup", function () {
+  if (!started) {
+    // $("#level-title").text("Level " + level);
+    gamePattern = [];
+    level = 0;
+    nextSequence();
+    started = true;
+  }
+});
 
 $(".btn").on("click", function () {
   var userChosenColour = $(this).attr("id");
   userClickedPattern.push(userChosenColour);
 
-  console.log(userClickedPattern);
+  // console.log(userClickedPattern);
+  playSound(userChosenColour);
+
+  //начин за получаване на индекса на последния елемент в масив
+  checkAnswer(userClickedPattern.length - 1);
 });
 
 function nextSequence() {
+  userClickedPattern = [];
+
+  level++;
+  $("#level-title").text("Level " + level);
+
   var randomNumber = Math.floor(Math.random() * 4);
   randomChosenColour = buttonColours[randomNumber];
   gamePattern.push(randomChosenColour);
 
-  console.log(gamePattern);
+  // console.log(gamePattern);
 
-  for (var i = 0; i < level; i++) {
-    $("#level-title").text("Level " + level);
-  }
-
-  level++;
+  $("#" + randomChosenColour)
+    .fadeOut(100)
+    .fadeIn(100);
 
   playSound(randomChosenColour);
 }
-
-$(document).on("keyup", function keyAnimation() {
-  setTimeout(function () {
-    $("#" + randomChosenColour)
-      .fadeOut(100)
-      .fadeIn(100);
-  }, 100);
-  $(document).unbind("keyup", keyAnimation);
-});
-
-$(".btn").on("click", function () {
-  setTimeout(function () {
-    $("#" + randomChosenColour)
-      .fadeOut(100)
-      .fadeIn(100);
-
-    playSound(randomChosenColour);
-  }, 1000);
-});
 
 function playSound(name) {
   var audio = new Audio("./sounds/" + name + ".mp3");
@@ -58,31 +57,21 @@ $(".btn").on("click", function animatePress(currentColour) {
   }, 100);
 });
 
-function startGame() {
-  nextSequence();
-  $("#level-title").text("Level 0");
-  $(document).unbind("keyup", startGame);
-}
-
-$(".btn").on("click", function checkAnswer(currentLevel) {
-  currentLevel = userClickedPattern.length - 1;
+function checkAnswer(currentLevel) {
   console.log(currentLevel);
+  console.log(gamePattern);
+  console.log(userClickedPattern);
+  if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+    console.log("success");
 
-  if (userClickedPattern.length == gamePattern.length) {
-    for (var i = 0; i < userClickedPattern.length; i++) {
-      if (userClickedPattern[i] !== gamePattern[i]) {
-        return console.log("wrong");
-      } else {
-        console.log("success");
-      }
+    if (userClickedPattern.length === gamePattern.length) {
+      setTimeout(function () {
+        nextSequence();
+      }, 1000);
     }
+  } else {
+    console.log("wrong");
+    started = false;
+    $("#level-title").text("Press a key to restart");
   }
-
-  // setTimeout(function () {
-  //   nextSequence();
-  // }, 1000);
-});
-
-$(document).on("keyup", startGame);
-
-$(".btn").on("click", nextSequence);
+}
